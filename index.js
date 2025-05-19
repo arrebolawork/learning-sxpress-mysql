@@ -5,7 +5,7 @@ const dotenv = require("dotenv").config();
 app.use(express.json());
 const PORT = 3000;
 
-const db = mysql.createConnection({ host: "localhost", user: "root", password: process.env.DB_PASS });
+const db = mysql.createConnection({ host: "localhost", user: "root", password: process.env.DB_PASS, database: "tiendaTestDb" });
 db.connect();
 
 app.get("/createDB", (req, res) => {
@@ -16,4 +16,24 @@ app.get("/createDB", (req, res) => {
   });
 });
 
+app.get("/createTables", (req, res) => {
+  const sqlStringCategory = "CREATE TABLE category(Id int PRIMARY KEY AUTO_INCREMENT, Category_name varchar(20) not null)";
+  const sqlStringProducts = "CREATE TABLE product(Id int PRIMARY KEY AUTO_INCREMENT,Product_name varchar(20) not null, Description varchar(200),Category_Id int,FOREIGN KEY(Category_Id)REFERENCES Category(Id));";
+
+  db.query(sqlStringCategory, (err, result) => {
+    if (err) {
+      console.error("Error creating category table:", err);
+      return res.status(500).send("Error creating category table");
+    }
+
+    db.query(sqlStringProducts, (err, result) => {
+      if (err) {
+        console.error("Error creating product table:", err);
+        return res.status(500).send("Error creating product table");
+      }
+
+      res.status(201).send("Both tables created successfully");
+    });
+  });
+});
 app.listen(PORT, () => console.log(`Servidor levantado en el Puerto ${PORT}`));
